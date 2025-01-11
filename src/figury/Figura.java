@@ -1,6 +1,4 @@
-/**
- * 
- */
+
 package figury;
 
 import java.awt.Color;
@@ -13,10 +11,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.util.Random;
 
-/**
- * @author tb
- *
- */
 public abstract class Figura implements Runnable, ActionListener/*, Shape*/ {
 
 	// wspolny bufor

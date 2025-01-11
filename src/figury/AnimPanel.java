@@ -11,9 +11,6 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 
 public class AnimPanel extends JPanel implements ActionListener {
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	// bufor
