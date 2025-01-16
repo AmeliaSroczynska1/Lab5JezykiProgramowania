@@ -30,7 +30,7 @@ public abstract class Figura implements Runnable, ActionListener/*, Shape*/ {
 	private int delay;
 	private int width;
 	private int height;
-	private Color clr;
+	Color clr;
 
 	protected static final Random rand = new Random();
 
@@ -46,10 +46,12 @@ public abstract class Figura implements Runnable, ActionListener/*, Shape*/ {
 		an = 0.1 * rand.nextDouble();
 
 		clr = new Color(rand.nextInt(255), rand.nextInt(255), rand.nextInt(255), rand.nextInt(255));
-		// reszta musi być zawarta w realizacji klasy Figure
-		// (tworzenie figury i przygotowanie transformacji)
 
+		aft = new AffineTransform();
+		area = new Area(); // Pusta figura (placeholder), aby nie było null
+		shape = area;      // Zapewnienie, że shape nie będzie null
 	}
+
 
 	@Override
 	public void run() {
