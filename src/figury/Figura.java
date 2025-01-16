@@ -30,7 +30,7 @@ public abstract class Figura implements Runnable, ActionListener/*, Shape*/ {
 	private int delay;
 	private int width;
 	private int height;
-	Color clr;
+	protected Color clr;
 
 	protected static final Random rand = new Random();
 

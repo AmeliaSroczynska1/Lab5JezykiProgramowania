@@ -17,6 +17,7 @@ public class AnimPanel extends JPanel implements ActionListener {
 	private Timer timer;
 
 	private List<Figura> figures; // Lista figur
+	private List<Figura> staticFigures; // Lista statycznych figur
 	private PlayerButton player;
 	private AnimatorApp animatorApp; // Referencja do AnimatorApp
 
@@ -24,6 +25,7 @@ public class AnimPanel extends JPanel implements ActionListener {
 		super();
 		timer = new Timer(delay, this);
 		figures = new ArrayList<>();
+		staticFigures = new ArrayList<>();
 		setLayout(null);
 	}
 
@@ -43,6 +45,9 @@ public class AnimPanel extends JPanel implements ActionListener {
 		// Start a collision detection thread
 		Thread collisionThread = collisionDetectionThread();
 		collisionThread.start();
+
+		Thread scoreThread = scoreCollisionThread();
+		scoreThread.start();
 	}
 
 	public void initialize() {
@@ -54,7 +59,11 @@ public class AnimPanel extends JPanel implements ActionListener {
 		buffer.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		device = (Graphics2D) getGraphics();
 		device.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+		// Start the circle spawner thread
+		startCircleSpawner();
 	}
+
 	void addFig() {
 		Figura fig = (figures.size() % 2 == 0)
 				? new Kwadrat(buffer, delay, getWidth(), getHeight())
@@ -81,10 +90,8 @@ public class AnimPanel extends JPanel implements ActionListener {
 						for (Figura fig : figures) {
 							Shape figShape = fig.shape;
 							if (figShape != null && figShape.getBounds().intersects(playerBounds)) {
-								if (animatorApp != null) {
-									animatorApp.updateScore(animatorApp.score + 1); // Aktualizacja wyniku
-								}
-								showWinDialog();
+								showDialog();
+								timer.stop();
 								return;
 							}
 						}
@@ -97,9 +104,48 @@ public class AnimPanel extends JPanel implements ActionListener {
 		});
 	}
 
-	private void showWinDialog() {
+	private Thread scoreCollisionThread() {
+		return new Thread(() -> {
+			try {
+				while (true) {
+					boolean collisionDetected = false;
+					synchronized (this) {
+						Rectangle playerBounds = player.getBounds();
+						List<Figura> collidedFigures = new ArrayList<>();
+						for (Figura fig : staticFigures) {
+							Shape figShape = fig.shape;
+							if (figShape != null && figShape.getBounds().intersects(playerBounds)) {
+								collidedFigures.add(fig);
+							}
+						}
+						if (!collidedFigures.isEmpty()) {
+							// Aktualizacja wyniku i usuwanie zaliczonych figur
+							for (Figura fig : collidedFigures) {
+								removeCircle(fig);
+							}
+							collisionDetected = true;
+						}
+					}
+					if (collisionDetected && animatorApp != null) {
+						SwingUtilities.invokeLater(() -> animatorApp.updateScore(animatorApp.score + 1));
+					}
+					Thread.sleep(50);
+				}
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		});
+	}
+
+	private void removeCircle(Figura circle) {
+		synchronized (this) {
+			staticFigures.remove(circle);
+			timer.removeActionListener(circle);
+		}
+	}
+	private void showDialog() {
 		SwingUtilities.invokeLater(() -> {
-			JOptionPane.showMessageDialog(this, "Przegrałeś!", "Przegrana", JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane.showMessageDialog(this, "Przegrałeś! \nZdobyłeś " + animatorApp.score + " punktów", "Przegrana", JOptionPane.INFORMATION_MESSAGE);
 		});
 	}
 
@@ -116,4 +162,27 @@ public class AnimPanel extends JPanel implements ActionListener {
 			buffer.clearRect(0, 0, getWidth(), getHeight());
 		}
 	}
+
+	private void startCircleSpawner() {
+		Thread spawnerThread = new Thread(() -> {
+			try {
+				while (true) {
+					Thread.sleep(5000); // Czeka 5 sekund
+					SwingUtilities.invokeLater(() -> {
+						synchronized (this) {
+							Figura circle = new StaticCircle(buffer, delay, getWidth(), getHeight());
+							staticFigures.add(circle);
+							timer.addActionListener(circle);
+							new Thread(circle).start();
+						}
+					});
+				}
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		});
+		spawnerThread.start();
+	}
+
 }
+

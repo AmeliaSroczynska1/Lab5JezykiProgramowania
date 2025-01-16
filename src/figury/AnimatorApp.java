@@ -67,7 +67,7 @@ public class AnimatorApp extends JFrame {
 		kanwa.addPlayer();
 
 		// Inicjalizacja etykiety wyniku
-		scoreLabel = new JLabel("Score: " + score);
+		scoreLabel = new JLabel("Wynik: " + score);
 		scoreLabel.setForeground(Color.WHITE);
 		scoreLabel.setFont(new Font("Arial", Font.BOLD, 16));
 		scoreLabel.setBounds(200, 239, 120, 23); // Pozycjonowanie
@@ -80,6 +80,6 @@ public class AnimatorApp extends JFrame {
 
 	public void updateScore(int newScore) {
 		this.score = newScore;
-		scoreLabel.setText("Score: " + score);
+		scoreLabel.setText("Wynik: " + score);
 	}
 }
